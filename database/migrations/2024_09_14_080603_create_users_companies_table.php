@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->integer('user_id');
             $table->string('address');
-            $table->string('map_url');
+            $table->text('map_url');
             $table->integer('order')->default(1);
             $table->timestamps();
         });

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('users_skills', function (Blueprint $table) {
             $table->id();
             $table->integer('user_id');
-            $table->string('note');
+            $table->text('note');
             $table->integer('order');
             $table->timestamps();
         });

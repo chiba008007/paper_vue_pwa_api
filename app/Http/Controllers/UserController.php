@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\users_company;
+use App\Models\users_skill;
+use App\Models\users_history;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,8 +49,14 @@ class UserController extends Controller
     }
     public function top(Request $request)
     {
-
-        return response("top", 201);
+        $code = $request->code;
+        $userdata = User::where('code', $code)
+        ->where("status",1)
+        ->first();
+        $user_companies = users_company::where("user_id",1)->get();
+        $users_skill = users_skill::where("user_id",1)->get();
+        $users_history = users_history::where("user_id",1)->get();
+        return response(['user'=>$userdata,'company'=>$user_companies,'skill'=>$users_skill,'history'=>$users_history], 201);
 
     }
     /**
