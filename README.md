@@ -7,3 +7,6 @@ paper
 ■ 公開ページ
 ※ 下記は phpinfo
 https://igtest7.sakura.ne.jp/paper/test.php
+
+■ mailtrap
+https://mailtrap.io/inboxes/1967815/messages/4455811042
