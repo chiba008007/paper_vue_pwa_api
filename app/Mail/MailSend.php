@@ -44,7 +44,7 @@ class MailSend extends Mailable
         return new Envelope(
             subject: 'お問い合わせありがとうございます。',
             from: new Address('from@example.com', '私の名刺'),
-            to: 'chiba@innovation-gate.jp' // 宛先を指定する
+            to: $this->email
         );
     }
 

@@ -17,12 +17,13 @@ class MailController extends Controller
         $data['name'] = $request->name;
         $data['body'] = $request->body;
 
-        // $obj = new MailSend($data['name'], $data['body']);
-        // Mail::to($data['email'])->send($obj);
+        // お客様にメール
+        Mail::send(new MailSend($data));
 
-        // return response("send", 201);
+        // 管理者へメール
+        $data['email'] = "admin@sample.jp";
+        Mail::send(new MailSend($data));
 
-         return response( Mail::send(new MailSend($data)));
-        // return response("send", 201);
+        return response("send", 201);
     }
 }
