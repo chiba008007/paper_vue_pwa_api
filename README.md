@@ -10,3 +10,6 @@ https://igtest7.sakura.ne.jp/paper/test.php
 
 ■ mailtrap
 https://mailtrap.io/inboxes/1967815/messages/4455811042
+
+■ 公開画像シンボリックリンク
+php artisan storage:link

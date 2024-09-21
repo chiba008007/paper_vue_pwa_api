@@ -16,7 +16,8 @@ return new class extends Migration
             $table->integer('user_id');
             $table->string('title');
             $table->text('note');
-            $table->integer('order');
+            $table->integer('order')->default(1);
+            $table->integer('status')->default(1);
             $table->timestamps();
         });
     }

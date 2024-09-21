@@ -25,9 +25,9 @@ return new class extends Migration
             $table->string('display_name')->nullable();
             $table->string('syozoku')->nullable();
             $table->string('kana')->nullable();
-            $table->string('myimage_path')->nullable();
+            $table->text('myimage_path')->nullable();
             $table->string('company_name')->nullable();
-            $table->string('company_image_path')->nullable();
+            $table->text('company_image_path')->nullable();
             $table->string('company_url')->nullable();
             $table->text('profile')->nullable();
             $table->integer('status')->default(1);
