@@ -123,8 +123,8 @@ class UserController extends Controller
         //auth()->guard('web')->logout();
         try{
             Auth::guard('sanctum')->user()->tokens()->delete();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            //$request->session()->invalidate();
+            //$request->session()->regenerateToken();
             return response("logout success", 201);
         }catch(Exception $e){
             return response("Unauthenticated Error", 401);
