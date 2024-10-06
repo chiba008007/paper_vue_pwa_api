@@ -31,6 +31,7 @@ return new class extends Migration
             $table->string('company_url')->nullable();
             $table->text('profile')->nullable();
             $table->integer('status')->default(1);
+            $table->integer('display_flag')->default(1);
             $table->rememberToken();
             $table->timestamps();
         });

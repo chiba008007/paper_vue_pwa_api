@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Readed;
 use App\Models\users_company;
 use App\Models\users_skill;
 use App\Models\users_history;
@@ -118,6 +119,23 @@ class UserController extends Controller
             return response($e, 400);
         }
     }
+    public function editUserStatus(Request $request){
+        DB::beginTransaction();
+        try{
+            $user = Auth::user();
+            $id = $user->id;
+            $update = User::find($id);
+            $update->display_flag = $request->display_flag;
+            $update->save();
+
+            DB::commit();
+            return response("success", 201);
+
+        }catch(Exception $e){
+            DB::rollback();
+            return response($e, 400);
+        }
+    }
     public function logout(Request $request)
     {
         //auth()->guard('web')->logout();
@@ -150,6 +168,36 @@ class UserController extends Controller
         return response($filename, 201);
     }
 
+    public function getRead(){
+        $user = Auth::user();
+        $id = $user->id;
+        $result =
+        Readed::select("users.*")
+        ->selectRaw('DATE_FORMAT(users.created_at, "%Y/%m/%d") AS date')
+        ->where(["readeds.user_id"=>$id,"readeds.status"=>1])
+        ->join('users', 'readeds.user_read_code', '=', 'users.code')
+        ->get();
+        return response($result,200);
+    }
+    public function setRead(Request $request){
+        $date = date('Y-m-d H:i:s');
+        $user = Auth::user();
+        $id = $user->id;
+        Readed::where("user_id",$id)->update([
+            "status"=>0,
+            "created_at"=>$date
+        ]);
+
+        $insert = [];
+        for($i = 0 ; $i < count($request[ 'data' ]) ; $i++){
+            $insert[$i][ 'user_id' ] = $id;
+            $insert[$i][ 'user_read_code' ] = $request[ 'data' ][$i][ 'user_read_code' ];
+            $insert[$i][ 'readtime' ] = $date;
+            $insert[$i][ 'created_at' ] = $date;
+        }
+        Readed::insert($insert);
+        return response("ok",200);
+    }
     /**
      * Show the form for creating a new resource.
      */
