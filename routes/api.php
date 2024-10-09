@@ -34,4 +34,4 @@ Route::post('mail', [MailController::class, 'send']);
 Route::post("login", [UserController::class, 'index']);
 Route::post("upload", [UserController::class, 'upload']);
 Route::get("top", [UserController::class, 'top']);
-Route::get("status", [UserController::class, 'status']);
+Route::apiResource("status", [UserController::class, 'status']);
