@@ -150,6 +150,9 @@ class UserController extends Controller
 
 
     }
+    public function status(){
+        return response("success", 201);
+    }
     public function top(Request $request)
     {
         $code = $request->code;
