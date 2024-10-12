@@ -151,6 +151,8 @@ class UserController extends Controller
 
     }
     public function status(){
+        $update = User::find(1)->get();
+var_dump($update);
         return response("success", 201);
     }
     public function top(Request $request)
