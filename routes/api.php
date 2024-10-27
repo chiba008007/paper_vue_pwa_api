@@ -34,4 +34,7 @@ Route::post('mail', [MailController::class, 'send']);
 Route::post("login", [UserController::class, 'index']);
 Route::post("upload", [UserController::class, 'upload']);
 Route::get("top", [UserController::class, 'top']);
+Route::post("setRegist", [UserController::class, 'setRegist']);
+Route::post("setRegistData", [UserController::class, 'setRegistData']);
+Route::post("getRegistData", [UserController::class, 'getRegistData']);
 Route::get("status", [UserController::class, 'status']);

@@ -21,7 +21,7 @@ class MailController extends Controller
         Mail::send(new MailSend($data));
 
         // 管理者へメール
-        $data['email'] = "admin@sample.jp";
+        $data['email'] = "admin@myselfpaper.online";
         Mail::send(new MailSend($data));
 
         return response("send", 201);

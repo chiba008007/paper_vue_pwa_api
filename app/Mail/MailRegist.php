@@ -11,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Address;
 use App\Consts\CommonConst;
 
-class MailSend extends Mailable
+class MailRegist extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -21,7 +21,7 @@ class MailSend extends Mailable
     public function __construct($data)
     {
         $this->name = $data['name'];
-        $this->body = $data['body'];
+        $this->subject = $data['subject'];
         $this->email = $data['email'];
     }
 
@@ -32,7 +32,7 @@ class MailSend extends Mailable
         ->with([
           'name' => $this->name,
           'email' => $this->email,
-          'body' => $this->body
+          'subject' => $this->subject,
         ]);
     }
 
@@ -42,7 +42,7 @@ class MailSend extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'お問い合わせありがとうございます。',
+            subject: $this->subject,
             from: new Address(CommonConst::ADMINMAIL, '私の名刺'),
             to: $this->email
         );
@@ -54,7 +54,7 @@ class MailSend extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'body',
+            view: 'bodyRegist',
         );
     }
 
