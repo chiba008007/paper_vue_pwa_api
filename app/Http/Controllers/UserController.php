@@ -10,6 +10,7 @@ use App\Models\users_skill;
 use App\Models\users_history;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\MailRegistNew;
+use App\Mail\MailRegistForget;
 use App\Mail\MailRegist;
 use Exception;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Consts\CommonConst;
-use App\Models\Users;
+use App\Models\forget;
 
 class UserController extends Controller
 {
@@ -29,7 +30,7 @@ class UserController extends Controller
         //
         $userdata = User::where('email', $request->email)->first();
 
-        $user = User::find($userdata[ 'id' ])->where("status",1);
+        $user = User::find($userdata[ 'id' ]);
         $token = "";
         if (password_verify($request->password, $user['password'])) {
             $token = $user->createToken('my-app-token')->plainTextToken;
@@ -45,13 +46,19 @@ class UserController extends Controller
     }
     public function getEditUser(Request $request){
 
-        $user = Auth::user();
+        DB::beginTransaction();
+        try{
+            $user = Auth::user();
 
-        $user_companies = users_company::where("user_id",$user->id)->where("status",1)->get();
-        $users_skill = users_skill::where("user_id",$user->id)->where("status",1)->get();
-        $users_history = users_history::where("user_id",$user->id)->where("status",1)->get();
-
-        return response(['user'=>$user,'company'=>$user_companies,'skill'=>$users_skill,'history'=>$users_history], 201);
+            $user_companies = users_company::where("user_id",$user->id)->where("status",1)->get();
+            $users_skill = users_skill::where("user_id",$user->id)->where("status",1)->get();
+            $users_history = users_history::where("user_id",$user->id)->where("status",1)->get();
+            DB::commit();
+            return response(['user'=>$user,'company'=>$user_companies,'skill'=>$users_skill,'history'=>$users_history], 201);
+        }catch(Exception $e){
+            DB::rollback();
+            return response($e, 400);
+        }
     }
     public function editUser(Request $request){
         DB::beginTransaction();
@@ -147,6 +154,7 @@ class UserController extends Controller
     {
         //auth()->guard('web')->logout();
         try{
+
             Auth::guard('sanctum')->user()->tokens()->delete();
             //$request->session()->invalidate();
             //$request->session()->regenerateToken();
@@ -322,6 +330,53 @@ var_dump($update);
         ->join('users', 'readeds.user_read_code', '=', 'users.code')
         ->get();
         return response($result,200);
+    }
+    public function forgetForm(Request $request){
+        $forgetcode = $request->forgetcode;
+        $forget = forget::where("forgetcode",$forgetcode)->where("status",1)->first();
+
+        DB::beginTransaction();
+        try{
+            $user_id = $forget->user_id;
+            $user = User::find($user_id);
+            $code = $user->code;
+            User::where("id",$user->id)->update([
+                "password"=>password_hash($request->password,PASSWORD_DEFAULT),
+                "updated_at"=>date('Y-m-d H:i:s')
+            ]);
+            forget::where("forgetcode",$forgetcode)->where("status",1)->update(['status'=>2]);
+
+            DB::commit();
+            return response($code, 201);
+        }catch(Exception $e){
+            DB::rollback();
+            return response($e, 400);
+        }
+    }
+    public function forget(Request $request){
+        $email = $request->email;
+        $userdata = User::where("email",$email)->where("status",1)->first();
+        $unique = md5(uniqid(rand(), true));
+        $insert = [];
+        $insert['forgetCode'] = $unique;
+        $insert[ 'email' ] = $userdata['email'];
+        $insert[ 'user_id' ] = $userdata[ 'id' ];
+        $insert[ 'status' ] = 1; // 有効
+        $insert[ 'created_at' ] = date('Y-m-d H:i:s');
+        $insert[ 'updated_at' ] = date('Y-m-d H:i:s');
+        forget::insert($insert);
+
+        $data = [];
+        $data[ 'email' ] = $email;
+        $data[ 'name' ] = $userdata[ 'name' ];
+        $data[ 'registUrl' ] = CommonConst::ADMINDOMAIN."/forgetForm?c=".$unique;
+        try{
+            Mail::send(new MailRegistForget($data));
+        }catch(Exception $e){
+            return false;
+        }
+
+        return response("success",200);
     }
     public function setRead(Request $request){
         $date = date('Y-m-d H:i:s');

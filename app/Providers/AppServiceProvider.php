@@ -20,5 +20,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+
+        $commonValue = [
+            1=>"利用中",
+            2=>"登録中",
+            3=>"登録待"
+        ]; //  追加
+        view()->share('commonValue', $commonValue); //  追加
+
     }
 }
