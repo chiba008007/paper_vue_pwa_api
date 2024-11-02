@@ -71,8 +71,27 @@ class UsersSeeder extends Seeder
             'remember_token' => Str::random(10),
             'created_at' => now()
             ],
-
-
+            [
+            'code' => "adminis",
+            'name' => "管理タロウ",
+            'email' => "admin@myselfpaper.online",
+            'email_verified_at' => now(),
+            'password' => password_hash('p@ssw@rds',PASSWORD_DEFAULT),
+            'tel' => "090-1234-1234",
+            'post' => "987-2202",
+            'pref' => "宮城県",
+            'address' => "青葉区木町10-20",
+            'display_name' => "佐藤 いいいいい",
+            'syozoku' => "開発部",
+            'kana' => "ええええ",
+            'myimage_path' => "http://arch.casio.jp/image/dc/images/EXZR400CIMG5739_s.jpg",
+            "company_name" => "サンプル株式会社",
+            "company_image_path" => "https://logodx.com/samplelogo/sa2.jpg",
+            "company_url" => "https://innovation-gate.jp/",
+            "profile" => "ああああ",
+            'remember_token' => Str::random(10),
+            'created_at' => now()
+            ],
         ]);
     }
 }

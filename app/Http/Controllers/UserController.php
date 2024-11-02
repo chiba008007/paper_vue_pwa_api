@@ -29,7 +29,7 @@ class UserController extends Controller
         //
         $userdata = User::where('email', $request->email)->first();
 
-        $user = User::find($userdata[ 'id' ]);
+        $user = User::find($userdata[ 'id' ])->where("status",1);
         $token = "";
         if (password_verify($request->password, $user['password'])) {
             $token = $user->createToken('my-app-token')->plainTextToken;
@@ -191,7 +191,7 @@ class UserController extends Controller
         $code = $request->code;
         $userdata = Registed::where('code', $code)
         ->where("status",1)
-        ->where("created_ts",">",$hour)
+        // ->where("created_ts",">",$hour)
         ->first();
         return response($userdata, 201);
     }
