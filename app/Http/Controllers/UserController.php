@@ -27,9 +27,9 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+
         //
         $userdata = User::where('email', $request->email)->first();
-
         $user = User::find($userdata[ 'id' ]);
         $token = "";
         if (password_verify($request->password, $user['password'])) {
@@ -41,7 +41,6 @@ class UserController extends Controller
 
             return response($response, 201);
         }
-
         return response("error", 401);
     }
     public function getEditUser(Request $request){
@@ -61,77 +60,64 @@ class UserController extends Controller
         }
     }
     public function editUser(Request $request){
-        DB::beginTransaction();
-        try{
-            $user = Auth::user();
-            $id = $user->id;
-            $update = User::find($id);
-            // $update->name = $request->name;
-            // $update->email = $request->email;
-            $update->tel = $request->tel;
-            $update->post = $request->post;
-            $update->pref = $request->pref;
-            $update->address = $request->address;
-            $update->display_name = $request->display_name;
-            $update->syozoku = $request->syozoku;
-            $update->kana = $request->kana;
-            if($request->myimage_path) $update->myimage_path = $request->myimage_path;
-            $update->company_name = $request->company_name;
-            if($request->company_image_path) $update->company_image_path = $request->company_image_path;
-            $update->company_url = $request->company_url;
-            $update->profile = $request->profile;
-            $update->save();
-            $companies = $request->companies;
-            $skills = $request->skills;
-            $histories = $request->histories;
 
-            // ステータスを0にして新しいデータを登録する
-            users_company::where("user_id",$user->id)->where("status",1)->update(['status' => 0]);
-            users_skill::where("user_id",$user->id)->where("status",1)->update(['status' => 0]);
-            users_history::where("user_id",$user->id)->where("status",1)->update(['status' => 0]);
+        $user = Auth::user();
+        $id = $user->id;
+        $update = User::find($id);
+        $update->display_name = $request->display_name;
+        $update->syozoku = $request->syozoku;
+        $update->kana = $request->kana;
+        if($request->myimage_path) $update->myimage_path = $request->myimage_path;
+        $update->company_name = $request->company_name;
+        if($request->company_image_path) $update->company_image_path = $request->company_image_path;
+        $update->company_url = $request->company_url;
+        $update->tel = $request->tel;
+        $update->profile = $request->profile;
+        $update->save();
 
-            $insert = [];
-            $i=0;
-            foreach($companies as $value){
-                $insert[$i]['user_id'] = $user->id;
-                $insert[$i]['address'] = $value['address'];
-                $insert[$i]['map_url'] = $value['map_url'];
-                $insert[$i]['order'] = $i+1;
-                $insert[$i]['created_at'] = now();
-                $i++;
-            }
-            users_company::insert($insert);
-            $insert = [];
-            $i=0;
-            foreach($skills as $value){
-                $insert[$i]['user_id'] = $user->id;
-                $insert[$i]['note'] = $value['note'];
-                $insert[$i]['order'] = $i+1;
-                $insert[$i]['created_at'] = now();
-                $i++;
-            }
-            users_skill::insert($insert);
-            $insert = [];
-            $i=0;
-            foreach($histories as $value){
-                $insert[$i]['user_id'] = $user->id;
-                $insert[$i]['title'] = $value['title'];
-                $insert[$i]['note'] = $value['note'];
-                $insert[$i]['order'] = $i+1;
-                $insert[$i]['created_at'] = now();
-                $i++;
-            }
-            users_history::insert($insert);
+        users_company::where("user_id",$user->id)->where("status",1)->update(['status' => 0]);
+        users_skill::where("user_id",$user->id)->where("status",1)->update(['status' => 0]);
+        users_history::where("user_id",$user->id)->where("status",1)->update(['status' => 0]);
 
-
-
-            DB::commit();
-            return response("success", 201);
-
-        }catch(Exception $e){
-            DB::rollback();
-            return response($e, 400);
+        $companies = $request->company_address;
+        $insert = [];
+        $i=0;
+        foreach($companies as $value){
+            $insert[$i][ 'user_id'   ] = $user->id;
+            $insert[$i][ 'address'   ] = $value['address'];
+            $insert[$i][ 'map_url'   ] = $value['map_url'];
+            $insert[$i][ 'order'     ] = $i+1;
+            $insert[$i][ 'created_at'] = now();
+            $i++;
         }
+        users_company::insert($insert);
+
+        $skills = $request->skills;
+        $insert = [];
+        $i=0;
+        foreach($skills as $value){
+            $insert[$i]['user_id' ] = $user->id;
+            $insert[$i]['note'    ] = $value['note'];
+            $insert[$i]['order'   ] = $i+1;
+            $insert[$i]['created_at'] = now();
+            $i++;
+        }
+        users_skill::insert($insert);
+
+
+        $histories = $request->histories;
+        $insert = [];
+        $i=0;
+        foreach($histories as $value){
+            $insert[$i]['user_id'] = $user->id;
+            $insert[$i]['title'] = $value['title'];
+            $insert[$i]['note'] = $value['note'];
+            $insert[$i]['order'] = $i+1;
+            $insert[$i]['created_at'] = now();
+            $i++;
+        }
+        users_history::insert($insert);
+        return response("success", 200);
     }
     public function editUserStatus(Request $request){
         DB::beginTransaction();
@@ -309,11 +295,23 @@ var_dump($update);
         ->where("status",1)
         ->first();
         $user_companies = users_company::where("user_id",$userdata->id)->where("status",1)->get();
+        foreach($user_companies as $key=>$value){
+            $user_companies[$key] = $value;
+            $user_companies[$key]['map_url_code'] = self::get_googlemap_url($value->map_url);
+        }
         $users_skill = users_skill::where("user_id",$userdata->id)->where("status",1)->get();
         $users_history = users_history::where("user_id",$userdata->id)->where("status",1)->get();
         return response(['user'=>$userdata,'company'=>$user_companies,'skill'=>$users_skill,'history'=>$users_history], 201);
 
     }
+
+    private function get_googlemap_url($address){
+       // $address = urlencode($address);
+        $address = "東京タワー";
+        $zoom = 15;
+        return "https://maps.google.co.jp/maps?q={$address}&z={$zoom}";
+    }
+
     public function upload(Request $request){
         $filename = uniqid().time().".jpg";
         $request->photo->storeAs('public/app/myImage', $filename);
