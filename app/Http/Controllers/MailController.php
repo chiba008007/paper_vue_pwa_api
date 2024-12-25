@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Mail;
 use App\Mail\MailSend;
-
+use App\Models\User;
 class MailController extends Controller
 {
     //
@@ -25,5 +25,10 @@ class MailController extends Controller
         Mail::send(new MailSend($data));
 
         return response("send", 201);
+    }
+    public function sameMail(Request $request){
+        $email = User::select("email")->get();
+        return response($email, 200);
+
     }
 }

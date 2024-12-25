@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MailController;
 use App\Http\Controllers\adminController;
+use App\Http\Controllers\UserController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -26,5 +27,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     //     return view('welcome');
     // });
     Route::get('list', [adminController::class, 'list']);
+    Route::post('list', [adminController::class, 'listed']);
+    Route::get('edit/id/{id}', [UserController::class, 'edit'])->name('edit');
+    Route::post('edit/id/{id}', [UserController::class, 'edited'])->name('edited');
 
 });

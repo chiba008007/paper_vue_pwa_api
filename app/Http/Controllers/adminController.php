@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Users;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,17 +26,34 @@ class adminController extends Controller
 
        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            //Auth::login($user);
-            //return redirect()->route('profile');
-            return redirect()->intended('list');
+
+            $userdata = User::where('email', $request->email)->first();
+            $user = User::find($userdata[ 'id' ]);
+            if($user[ 'code' ] === 'adminis'){
+                return redirect()->intended('list');
+            }else{
+                echo "login error";
+                exit();
+            }
         }
         return back();
     }
     public function list()
     {
 
-        $users = Users::get()->sortByDesc("id");
+        $users = User::get()->sortByDesc("id");
 
+        return view('adminList', compact('users'));
+    }
+    public function listed(Request $request)
+    {
+
+        foreach( $request->input('status') as $key=>$value){
+            $user = User::find($key);
+            $user->status = $value;
+            $user->save();
+        }
+        $users = User::get()->sortByDesc("id");
         return view('adminList', compact('users'));
     }
 }

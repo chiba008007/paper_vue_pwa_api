@@ -31,6 +31,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
 
 Route::post('mail', [MailController::class, 'send']);
+Route::post('sameMail', [MailController::class, 'sameMail']);
 Route::post("login", [UserController::class, 'index']);
 Route::post("upload", [UserController::class, 'upload']);
 Route::get("top", [UserController::class, 'top']);

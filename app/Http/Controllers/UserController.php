@@ -417,16 +417,111 @@ var_dump($update);
     public function show(User $user)
     {
         //
-    }
 
+    }
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(User $user)
+    public function edit(Request $request,User $user,$id)
     {
         //
-    }
+        $users = User::find($id);
+        $users_companies = users_company::where("user_id",$users->id)->where("status",1)->get();
+        $users_companies_count = users_company::where("user_id",$users->id)->where("status",1)->count();
+        $users->users_companies = $users_companies;
+        $users->users_companies->count = ($request->sel)?$request->sel:$users_companies_count;
 
+        $users_skill = users_skill::where("user_id",$users->id)->where("status",1)->get();
+        $users_skill_count = users_skill::where("user_id",$users->id)->where("status",1)->count();
+        $users->users_skill = $users_skill;
+        $users->users_skill->count = ($request->skillsel)?$request->skillsel:$users_skill_count;
+
+        $users_histories = users_history::where("user_id",$users->id)->where("status",1)->get();
+        $users_histories_count = users_history::where("user_id",$users->id)->where("status",1)->count();
+        $users->users_histories = $users_histories;
+        $users->users_histories->count = ($request->historysel)?$request->historysel:$users_histories_count;
+
+
+        return view('User', compact('users'));
+    }
+    public function edited(Request $request,User $user,$id)
+    {
+        if($request->basic_button){
+            $update = User::find($id);
+            $update->code = $request->code;
+            $update->display_name = $request->display_name;
+            $update->syozoku = $request->syozoku;
+            $update->kana = $request->kana;
+            if($request->myimage_path){
+                $file_name = uniqid()."_".$request->file('myimage_path')->getClientOriginalName();
+                $request->file('myimage_path')->storeAs( CommonConst::IMAGEDIR,$file_name);
+                $update->myimage_path = config('app.url').CommonConst::IMAGEPATH.$file_name;
+            }
+            $update->company_name = $request->company_name;
+            if($request->company_image_path){
+                $file_name = uniqid()."_".$request->file('company_image_path')->getClientOriginalName();
+                $request->file('company_image_path')->storeAs( CommonConst::IMAGEDIR,$file_name);
+                $update->company_image_path = config('app.url').CommonConst::IMAGEPATH.$file_name;
+            }
+            $update->company_url = $request->company_url;
+            $update->tel = $request->tel;
+            $update->profile = $request->profile;
+            $update->email = $request->email;
+            $update->save();
+
+        }
+
+        if($request->company_button){
+            users_company::where('user_id', $id)->delete();
+
+            $insert = [];
+            $i=0;
+            foreach($request->address as $value){
+
+                $insert[$i]['user_id'] = $id;
+                $insert[$i]['address'] = $value;
+                $insert[$i]['map_url'] = $request->map_url[$i];
+                $insert[$i]['order'] = $i+1;
+                $insert[$i]['created_at'] = now();
+                $insert[$i]['updated_at'] = now();
+                $i++;
+
+            }
+            if(count($insert) > 0) users_company::insert($insert);
+        }
+
+        if($request->user_skills){
+            users_skill::where('user_id', $id)->delete();
+            $insert = [];
+            $i=0;
+            foreach($request->note as $value){
+                $insert[$i]['user_id'] = $id;
+                $insert[$i]['note'] = $value;
+                $insert[$i]['order'] = $i+1;
+                $insert[$i]['created_at'] = now();
+                $insert[$i]['updated_at'] = now();
+                $i++;
+            }
+            if(count($insert) > 0) users_skill::insert($insert);
+        }
+
+        if($request->user_history){
+            users_history::where('user_id', $id)->delete();
+            $insert = [];
+            $i=0;
+            foreach($request->note as $key=>$value){
+                $insert[$i]['user_id'] = $id;
+                $insert[$i]['title'] = $request->title[$key];
+                $insert[$i]['note'] = $value;
+                $insert[$i]['order'] = $i+1;
+                $insert[$i]['created_at'] = now();
+                $insert[$i]['updated_at'] = now();
+                $i++;
+            }
+            if(count($insert) > 0) users_history::insert($insert);
+        }
+        return redirect()->route('edit', ['id' => $id]);
+    }
     /**
      * Update the specified resource in storage.
      */
