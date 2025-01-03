@@ -20,6 +20,9 @@ function historyChange(){
             @csrf
             <input type="submit" name="basic_button" value="更新" />
             <br />
+            パスワード<br />
+            <input type="text" name="password" value="" />
+            <br />
             code<br />
             <input type="text" name="code" value="{{ $users->code }}" />
             <br />

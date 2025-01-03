@@ -471,6 +471,9 @@ var_dump($update);
     {
         if($request->basic_button){
             $update = User::find($id);
+            if($request->password){
+                $update->password = password_hash($request->password,PASSWORD_DEFAULT);
+            }
             $update->code = $request->code;
             $update->display_name = $request->display_name;
             $update->syozoku = $request->syozoku;
