@@ -25,6 +25,7 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
+    public $name;
     public function index(Request $request)
     {
 
@@ -181,102 +182,124 @@ class UserController extends Controller
     }
     public function getRegistData(Request $request)
     {
-        $hour = date("Y-m-d H:i:s",strtotime("-1 hour"));
+        $hour = date("Y-m-d H:i:s");
         $code = $request->code;
-        $userdata = Registed::where('code', $code)
-        ->where("status",1)
-        // ->where("created_ts",">",$hour)
-        ->first();
-        return response($userdata, 201);
+        $sql = "
+            SELECT
+                *,
+                date_format(created_at, '%Y-%m-%d %H:%i:%s') + INTERVAL 1 DAY as dated
+            FROM
+                registeds
+            WHERE
+                code = ? AND
+                status = 1 AND
+                date_format(created_at, '%Y-%m-%d %H:%i:%s') + INTERVAL 1 DAY > ?
+        ";
+        $userdata = DB::select($sql, [$code,$hour]);
+        if($userdata){
+            $this->name = $userdata[0]->name;
+            return response($userdata, 201);
+        }else{
+            return response([], 400);
+        }
     }
     public function setRegistData(Request $request)
     {
-        $code = $request->code;
-        $userdata = Registed::where('code', $code)->first();
-        $userdata->status='2';
-        $userdata->save();
+
         DB::beginTransaction();
         try{
+            if($this->getRegistData($request)){
+                $code = $request->code;
+                $userdata = Registed::where('code', $code)->first();
+                $userdata->status='2';
+                $userdata->save();
 
-            $insert = [];
-            $code = uniqid();
-            $insert['code'] = $code;
-            $insert['name'] = $request->name;
-            $insert['display_name'] = $request->display_name;
-            $insert['email'] = $request->email;
-            $insert['password'] = "password";
-            $insert['syozoku'] = $request->syozoku;
-            $insert['kana'] = $request->kana;
-            $insert['address'] = $request->address;
-            $insert['tel'] = $request->tel;
-            $insert['post'] = $request->post;
-            $insert['pref'] = $request->pref;
-            $insert['myimage_path'] = $request->myimage_path;
-            $insert['company_image_path'] = $request->company_image_path;
-            $insert['company_name'] = $request->company_name;
-            $insert['company_url'] = $request->company_url;
-            $insert['profile'] = $request->profile;
-            $insert['status'] = 3; // 仮登録
-            $insert['created_at'] = date("Y-m-d H:i:s");
-            $insert['updated_at'] = date("Y-m-d H:i:s");
-            User::insert($insert);
+                $insert = [];
+                $code = uniqid();
+                $insert['code'] = $code;
+                $insert['name'] = $this->name;
+                $insert['display_name'] = $request->display_name;
+                $insert['email'] = $request->email;
+                $insert['password'] = "password";
+                $insert['syozoku'] = $request->syozoku;
+                $insert['kana'] = $request->kana;
+                $insert['address'] = $request->address;
+                $insert['tel'] = $request->tel;
+                $insert['post'] = $request->post;
+                $insert['pref'] = $request->pref;
+                $insert['myimage_path'] = $request->myimage_path;
+                $insert['company_image_path'] = $request->company_image_path;
+                $insert['company_name'] = $request->company_name;
+                $insert['company_url'] = $request->company_url;
+                $insert['profile'] = $request->profile;
+                $insert['status'] = 3; // 仮登録
+                $insert['display_flag'] = 1;
+                $insert['created_at'] = date("Y-m-d H:i:s");
+                $insert['updated_at'] = date("Y-m-d H:i:s");
+                User::insert($insert);
 
-            $lastId = DB::getPdo()->lastInsertId();
-            $companies = $request->company_address;
-            $skills = $request->skills;
-            $histories = $request->histories;
+                $lastId = DB::getPdo()->lastInsertId();
+                $companies = $request->company_address;
+                $skills = $request->skills;
+                $histories = $request->histories;
 
-            $insert = [];
-            $i=0;
-            foreach($companies as $value){
-                if($value['value']){
-                    $insert[$i]['user_id'] = $lastId;
-                    $insert[$i]['address'] = $value['value'];
-                    $insert[$i]['map_url'] = $value['map_url'];
-                    $insert[$i]['order'] = $i+1;
-                    $insert[$i]['created_at'] = now();
-                    $i++;
+                $insert = [];
+                $i=0;
+                foreach($companies as $value){
+                    if($value['value']){
+                        $insert[$i]['user_id'] = $lastId;
+                        $insert[$i]['address'] = $value['value'];
+                        $insert[$i]['map_url'] = $value['map_url'];
+                        $insert[$i]['order'] = $i+1;
+                        $insert[$i]['created_at'] = now();
+                        $i++;
+                    }
                 }
-            }
-            if(count($insert) > 0) users_company::insert($insert);
-            $insert = [];
-            $i=0;
-            foreach($skills as $value){
-                if($value['value']){
-                    $insert[$i]['user_id'] = $lastId;
-                    $insert[$i]['note'] = $value['value'];
-                    $insert[$i]['order'] = $i+1;
-                    $insert[$i]['created_at'] = now();
-                    $i++;
+                if(count($insert) > 0) users_company::insert($insert);
+                $insert = [];
+                $i=0;
+                foreach($skills as $value){
+                    if($value['value']){
+                        $insert[$i]['user_id'] = $lastId;
+                        $insert[$i]['note'] = $value['value'];
+                        $insert[$i]['order'] = $i+1;
+                        $insert[$i]['created_at'] = now();
+                        $i++;
+                    }
                 }
-            }
-            if(count($insert) > 0) users_skill::insert($insert);
+                if(count($insert) > 0) users_skill::insert($insert);
 
-            $insert = [];
-            $i=0;
-            foreach($histories as $value){
-                if($value['value']){
-                    $insert[$i]['user_id'] = $lastId;
-                    $insert[$i]['title'] = $value['title'];
-                    $insert[$i]['note'] = $value['value'];
-                    $insert[$i]['order'] = $i+1;
-                    $insert[$i]['created_at'] = now();
-                    $i++;
+                $insert = [];
+                $i=0;
+                foreach($histories as $value){
+                    if($value['value']){
+                        $insert[$i]['user_id'] = $lastId;
+                        $insert[$i]['title'] = $value['title'];
+                        $insert[$i]['note'] = $value['value'];
+                        $insert[$i]['order'] = $i+1;
+                        $insert[$i]['created_at'] = now();
+                        $i++;
+                    }
                 }
+                if(count($insert) > 0) users_history::insert($insert);
+
+                DB::commit();
+
+
+                $data = [];
+                $data[ 'email' ] = $request->email;
+                $data[ 'name' ] = $this->name;
+                $data[ 'subject' ] = "新規申し込みありがとうございます。";
+                Mail::send(new MailRegist($data));
+
+                $data[ 'email' ] = CommonConst::ADMINMAIL;
+                $data[ 'subject' ] = "新規申し込みがありました。パスワード[password]";
+                Mail::send(new MailRegist($data));
+
+                return response("success", 201);
+            }else{
+                return response([], 400);
             }
-            if(count($insert) > 0) users_history::insert($insert);
-
-            DB::commit();
-            $data = [];
-            $data[ 'email' ] = $request->email;
-            $data[ 'name' ] = $request->name;
-            $data[ 'subject' ] = "新規申し込みありがとうございます。";
-            Mail::send(new MailRegist($data));
-
-            $data[ 'email' ] = CommonConst::ADMINMAIL;
-            $data[ 'subject' ] = "新規申し込みがありました。パスワード[password]";
-            Mail::send(new MailRegist($data));
-            return response("success", 201);
         }catch(Exception $e){
             DB::rollback();
             return response($e, 400);
