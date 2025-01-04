@@ -12,7 +12,7 @@
     @foreach ($users as $user)
     <tr>
         <td>{{ $user->id }}</td>
-        <td>{{ $user->code }}</td>
+        <td>{{ $users->domain }}/?code={{ $user->code }}</td>
         <td>{{ $user->name }}</td>
         <td>
             <select name="status[{{ $user->id }}]">

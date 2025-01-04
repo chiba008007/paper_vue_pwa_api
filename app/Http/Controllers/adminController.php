@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Consts\CommonConst;
 
 class adminController extends Controller
 {
@@ -42,6 +43,11 @@ class adminController extends Controller
     {
 
         $users = User::get()->sortByDesc("id");
+        if(preg_match("/localhost/",$_SERVER['HTTP_HOST'])){
+            $users->domain = CommonConst::LOCALDOMAIN;
+        }else{
+            $users->domain = CommonConst::ADMINDOMAIN;
+        }
 
         return view('adminList', compact('users'));
     }
@@ -53,7 +59,6 @@ class adminController extends Controller
             $user->status = $value;
             $user->save();
         }
-        $users = User::get()->sortByDesc("id");
-        return view('adminList', compact('users'));
+        return redirect()->route('list');
     }
 }
