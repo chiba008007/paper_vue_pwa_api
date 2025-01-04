@@ -14,6 +14,7 @@ function historyChange(){
 </script>
 <div style="width:1500px;">
     <div style="width:300px;float:left;">
+        <a href="/list">一覧に戻る</a>
         <h4>基本情報</h4>
         {{ $users->id }}
         <form action="" method="post" enctype="multipart/form-data" >
