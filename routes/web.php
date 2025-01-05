@@ -29,6 +29,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('list', [adminController::class, 'list'])->name('list');
     Route::post('list', [adminController::class, 'listed']);
     Route::get('edit/id/{id}', [UserController::class, 'edit'])->name('edit');
-    Route::post('edit/id/{id}', [UserController::class, 'edited'])->name('edited');
+    Route::post('edit/id/{id}', [UserController::class, 'index'])->name('edited');
 
 });

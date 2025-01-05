@@ -9,11 +9,21 @@
     @csrf
     <input type="submit" name="regist" value="更新" />
     <table border=1>
+    <tr>
+        <td>ID</td>
+        <td>利用者用URL</td>
+        <td>利用者名</td>
+        <td>メールアドレス</td>
+        <td>ステータス</td>
+        <td>登録日</td>
+        <td>機能</td>
+    </tr>
     @foreach ($users as $user)
     <tr>
         <td>{{ $user->id }}</td>
         <td>{{ $users->domain }}/?code={{ $user->code }}</td>
         <td>{{ $user->name }}</td>
+        <td>{{ $user->email }}</td>
         <td>
             <select name="status[{{ $user->id }}]">
                 @foreach($commonValue as $key=>$value)
