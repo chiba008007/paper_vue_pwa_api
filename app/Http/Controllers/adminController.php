@@ -59,6 +59,11 @@ class adminController extends Controller
             $user->status = $value;
             $user->save();
         }
+        foreach( $request->input('display_flag') as $key=>$value){
+            $user = User::find($key);
+            $user->display_flag = $value;
+            $user->save();
+        }
         return redirect()->route('list');
     }
 }

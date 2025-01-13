@@ -15,6 +15,7 @@
         <td>利用者名</td>
         <td>メールアドレス</td>
         <td>ステータス</td>
+        <td>表示</td>
         <td>登録日</td>
         <td>機能</td>
     </tr>
@@ -30,6 +31,14 @@
                 <option value="{{ $key }}" @if($user->status == $key) selected @endif >{{ $value }}</option>
                 @endforeach
             </select>
+        </td>
+        <td>
+            <select name="display_flag[{{ $user->id }}]">
+                @foreach($displayValue as $key=>$value)
+                <option value="{{ $key }}" @if($user->display_flag == $key) selected @endif >{{ $value }}</option>
+                @endforeach
+            </select>
+
         </td>
         <td>{{ $user->created_at }}</td>
         <td>

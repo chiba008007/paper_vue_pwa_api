@@ -27,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
             3=>"登録待"
         ]; //  追加
         view()->share('commonValue', $commonValue); //  追加
+        $displayValue = [
+            0=>"非公開",
+            1=>"公開",
+        ]; //  追加
+        view()->share('displayValue', $displayValue); //  追加
 
     }
 }
