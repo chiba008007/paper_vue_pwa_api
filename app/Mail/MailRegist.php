@@ -43,7 +43,7 @@ class MailRegist extends Mailable
     {
         return new Envelope(
             subject: $this->subject,
-            from: new Address(CommonConst::ADMINMAIL, '私の名刺'),
+            from: new Address(CommonConst::ADMINMAIL, '私のプロフ'),
             to: $this->email
         );
     }

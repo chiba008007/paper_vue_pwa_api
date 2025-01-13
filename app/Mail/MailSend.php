@@ -43,7 +43,7 @@ class MailSend extends Mailable
     {
         return new Envelope(
             subject: 'お問い合わせありがとうございます。',
-            from: new Address(CommonConst::ADMINMAIL, '私の名刺'),
+            from: new Address(CommonConst::ADMINMAIL, '私のプロフ'),
             to: $this->email
         );
     }
