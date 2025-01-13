@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Mail;
 use App\Mail\MailSend;
+use App\Mail\MailSendAdmin;
 use App\Models\User;
 class MailController extends Controller
 {
@@ -21,8 +22,8 @@ class MailController extends Controller
         Mail::send(new MailSend($data));
 
         // 管理者へメール
-        $data['email'] = "admin@myselfpaper.online";
-        Mail::send(new MailSend($data));
+        $data['adminemail'] = "admin@myselfpaper.online";
+        Mail::send(new MailSendAdmin($data));
 
         return response("send", 201);
     }
