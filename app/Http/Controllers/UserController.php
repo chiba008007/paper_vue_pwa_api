@@ -45,20 +45,14 @@ class UserController extends Controller
         return response("error", 401);
     }
     public function getEditUser(Request $request){
+        $user = Auth::user();
 
-        DB::beginTransaction();
-        try{
-            $user = Auth::user();
+        $user_companies = users_company::where("user_id",$user->id)->where("status",1)->get();
+        $users_skill = users_skill::where("user_id",$user->id)->where("status",1)->get();
+        $users_history = users_history::where("user_id",$user->id)->where("status",1)->get();
+        DB::commit();
+        return response(['user'=>$user,'company'=>$user_companies,'skill'=>$users_skill,'history'=>$users_history], 201);
 
-            $user_companies = users_company::where("user_id",$user->id)->where("status",1)->get();
-            $users_skill = users_skill::where("user_id",$user->id)->where("status",1)->get();
-            $users_history = users_history::where("user_id",$user->id)->where("status",1)->get();
-            DB::commit();
-            return response(['user'=>$user,'company'=>$user_companies,'skill'=>$users_skill,'history'=>$users_history], 201);
-        }catch(Exception $e){
-            DB::rollback();
-            return response($e, 400);
-        }
     }
     public function editUser(Request $request){
 
