@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MailController;
 use App\Http\Controllers\adminController;
+use App\Http\Controllers\PayController;
 use App\Http\Controllers\UserController;
 /*
 |--------------------------------------------------------------------------
@@ -21,6 +22,7 @@ Route::get('/', function () {
 Route::get('mail', [MailController::class, 'send']);
 Route::get('admin/login', [adminController::class, 'login']);
 Route::post('admin/login', [adminController::class, 'logined']);
+Route::get('pay', [PayController::class,'index'])->name("pay");
 
 Route::group(['middleware' => 'auth:sanctum'], function () {
     // Route::get('/list', function () {

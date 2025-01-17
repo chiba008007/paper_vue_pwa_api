@@ -3,10 +3,19 @@
 @include('common.header')
 
 @section('content')
+stripeで支払い確認ができたらステータスを利用中に変更します。
+<br />
+■テストURL<br />
+https://dashboard.stripe.com/test/payments<br />
+
+chiba00807@gmail.com / Takahiro1234
+<br />
 <h1>ユーザ一覧画面</h1>
 <a href="">新規作成</a>
 <form action="/list" method=post>
     @csrf
+    変更対象のIDを指定<br />
+    <input type="text" name="id" value="{{ old('id') }}" required />
     <input type="submit" name="regist" value="更新" />
     <table border=1>
     <tr>

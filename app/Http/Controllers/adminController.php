@@ -55,14 +55,18 @@ class adminController extends Controller
     {
 
         foreach( $request->input('status') as $key=>$value){
-            $user = User::find($key);
-            $user->status = $value;
-            $user->save();
+            if($request->id == $key){
+                $user = User::find($key);
+                $user->status = $value;
+                $user->save();
+            }
         }
         foreach( $request->input('display_flag') as $key=>$value){
-            $user = User::find($key);
-            $user->display_flag = $value;
-            $user->save();
+            if($request->id == $key){
+                $user = User::find($key);
+                $user->display_flag = $value;
+                $user->save();
+            }
         }
         return redirect()->route('list');
     }
