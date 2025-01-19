@@ -42,7 +42,14 @@ class adminController extends Controller
     public function list()
     {
 
-        $users = User::get()->sortByDesc("id");
+        //$users = User::get()->sortByDesc("users.id");
+
+
+        $users = User::select(['users.*','registeds.post','registeds.address'])->leftJoin('registeds', function ($join) {
+            $join->on('registeds.mail', '=', 'users.email')
+            ->where('registeds.status', '=', 2);
+        })->get()->sortByDesc("id");
+
         if(preg_match("/localhost/",$_SERVER['HTTP_HOST'])){
             $users->domain = CommonConst::LOCALDOMAIN;
         }else{

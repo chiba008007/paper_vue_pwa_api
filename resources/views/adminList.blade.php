@@ -23,6 +23,7 @@ chiba00807@gmail.com / Takahiro1234
         <td>利用者用URL</td>
         <td>利用者名</td>
         <td>メールアドレス</td>
+        <td>名刺送付先住所</td>
         <td>ステータス</td>
         <td>表示</td>
         <td>登録日</td>
@@ -34,6 +35,7 @@ chiba00807@gmail.com / Takahiro1234
         <td>{{ $users->domain }}/?code={{ $user->code }}</td>
         <td>{{ $user->name }}</td>
         <td>{{ $user->email }}</td>
+        <td>{{ $user->post }}<br />{{ $user->address }}</td>
         <td>
             <select name="status[{{ $user->id }}]">
                 @foreach($commonValue as $key=>$value)
