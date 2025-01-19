@@ -140,6 +140,7 @@ class UserController extends Controller
         try{
 
             Auth::guard('sanctum')->user()->tokens()->delete();
+            $request->user()->currentAccessToken()->delete();
             //$request->session()->invalidate();
             //$request->session()->regenerateToken();
             return response("logout success", 201);
