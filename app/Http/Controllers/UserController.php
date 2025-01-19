@@ -38,7 +38,6 @@ class UserController extends Controller
         $token = "";
         if (password_verify($request->password, $user['password'])) {
             $token = $user->createToken('my-app-token')->plainTextToken;
-            var_dump($token);
             $response = [
                 'user' => $user,
                 'token' => $token
