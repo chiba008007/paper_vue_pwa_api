@@ -31,6 +31,9 @@ class UserController extends Controller
 
         //
         $userdata = User::where('email', $request->email)->first();
+return response($userdata, 201);
+
+        /*
         if(!$userdata){
             return response("error", 401);
         }
@@ -46,6 +49,7 @@ class UserController extends Controller
             return response($response, 201);
         }
         return response("error", 401);
+        */
     }
     public function getEditUser(Request $request){
         $user = Auth::user();
