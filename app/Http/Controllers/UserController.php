@@ -31,6 +31,9 @@ class UserController extends Controller
 
         //
         $userdata = User::where('email', $request->email)->first();
+        if(!$userdata){
+            return response("error", 401);
+        }
         $user = User::find($userdata[ 'id' ]);
         $token = "";
         if (password_verify($request->password, $user['password'])) {
