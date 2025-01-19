@@ -31,10 +31,10 @@ class UserController extends Controller
 
         //
         $userdata = User::where('email', $request->email)->first();
-        if (password_verify($request->password, $userdata['password'])) {
-            echo "aaaaaaaa";
-        }
-return response($userdata, 201);
+        // if (password_verify($request->password, $userdata['password'])) {
+        //     echo "aaaaaaaa";
+        // }
+return response($userdata['password'], 201);
         /*
         if(!$userdata){
             return response("error", 401);
