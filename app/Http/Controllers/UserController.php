@@ -31,11 +31,6 @@ class UserController extends Controller
 
         //
         $userdata = User::where('email', $request->email)->first();
-        // if (password_verify($request->password, $userdata['password'])) {
-        //     echo "aaaaaaaa";
-        // }
-return response($userdata['password'], 201);
-        /*
         if(!$userdata){
             return response("error", 401);
         }
@@ -43,6 +38,7 @@ return response($userdata['password'], 201);
         $token = "";
         if (password_verify($request->password, $user['password'])) {
             $token = $user->createToken('my-app-token')->plainTextToken;
+            var_dump($token);
             $response = [
                 'user' => $user,
                 'token' => $token
@@ -51,7 +47,6 @@ return response($userdata['password'], 201);
             return response($response, 201);
         }
         return response("error", 401);
-        */
     }
     public function getEditUser(Request $request){
         $user = Auth::user();
