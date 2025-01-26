@@ -180,7 +180,7 @@ class UserController extends Controller
     }
     public function getRegistData(Request $request)
     {
-        $hour = date("Y-m-d H:i:s");
+       // $hour = date("Y-m-d H:i:s");
         $code = $request->code;
         $sql = "
             SELECT
@@ -190,10 +190,9 @@ class UserController extends Controller
                 registeds
             WHERE
                 code = ? AND
-                status = 1 AND
-                date_format(created_at, '%Y-%m-%d %H:%i:%s') + INTERVAL 1 DAY > ?
+                status = 1
         ";
-        $userdata = DB::select($sql, [$code,$hour]);
+        $userdata = DB::select($sql, [$code]);
         if($userdata){
             $this->name = $userdata[0]->name;
             return response($userdata, 201);
