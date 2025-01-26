@@ -35,7 +35,7 @@ chiba00807@gmail.com / Takahiro1234
         <td>{{ $users->domain }}/?code={{ $user->code }}</td>
         <td>{{ $user->name }}</td>
         <td>{{ $user->email }}</td>
-        <td>{{ $user->post }}<br />{{ $user->address }}</td>
+        <td>{{ $user->registed_post }}<br />{{ $user->registed_pref }}{{ $user->registed_address }}</td>
         <td>
             <select name="status[{{ $user->id }}]">
                 @foreach($commonValue as $key=>$value)

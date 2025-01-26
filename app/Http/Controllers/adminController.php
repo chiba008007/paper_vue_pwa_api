@@ -45,7 +45,12 @@ class adminController extends Controller
         //$users = User::get()->sortByDesc("users.id");
 
 
-        $users = User::select(['users.*','registeds.post','registeds.address'])->leftJoin('registeds', function ($join) {
+        $users = User::select([
+            'users.*',
+            'registeds.post as registed_post',
+            'registeds.pref as registed_pref',
+            'registeds.address as registed_address'
+            ])->leftJoin('registeds', function ($join) {
             $join->on('registeds.mail', '=', 'users.email')
             ->where('registeds.status', '=', 2);
         })->get()->sortByDesc("id");
