@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\MailSend;
 use App\Mail\MailSendAdmin;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 class MailController extends Controller
 {
     //
@@ -18,6 +19,7 @@ class MailController extends Controller
         $data['name'] = $request->name;
         $data['body'] = $request->body;
 
+        Log::info('問い合わせメール'.$data);
         // お客様にメール
         Mail::send(new MailSend($data));
 
