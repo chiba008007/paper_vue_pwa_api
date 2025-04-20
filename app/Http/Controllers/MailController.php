@@ -19,7 +19,9 @@ class MailController extends Controller
         $data['name'] = $request->name;
         $data['body'] = $request->body;
 
-        Log::info('問い合わせメール'.$data);
+        Log::info('問い合わせメール[email]'.$data['email']);
+        Log::info('問い合わせメール[name]'.$data['name']);
+        Log::info('問い合わせメール[body]'.$data['body']);
         // お客様にメール
         Mail::send(new MailSend($data));
 
