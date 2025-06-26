@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Consts\CommonConst;
 use App\Models\forget;
+use App\Models\user_renew_pages;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -31,7 +33,7 @@ class UserController extends Controller
 
         //
         $userdata = User::where('email', $request->email)->first();
-        if(!$userdata){
+        if (!$userdata) {
             return response("error", 401);
         }
         $user = User::find($userdata[ 'id' ]);
@@ -47,17 +49,19 @@ class UserController extends Controller
         }
         return response("error", 401);
     }
-    public function getEditUser(Request $request){
+    public function getEditUser(Request $request)
+    {
         $user = Auth::user();
 
-        $user_companies = users_company::where("user_id",$user->id)->where("status",1)->get();
-        $users_skill = users_skill::where("user_id",$user->id)->where("status",1)->get();
-        $users_history = users_history::where("user_id",$user->id)->where("status",1)->get();
+        $user_companies = users_company::where("user_id", $user->id)->where("status", 1)->get();
+        $users_skill = users_skill::where("user_id", $user->id)->where("status", 1)->get();
+        $users_history = users_history::where("user_id", $user->id)->where("status", 1)->get();
         DB::commit();
-        return response(['user'=>$user,'company'=>$user_companies,'skill'=>$users_skill,'history'=>$users_history], 201);
+        return response(['user' => $user,'company' => $user_companies,'skill' => $users_skill,'history' => $users_history], 201);
 
     }
-    public function editUser(Request $request){
+    public function editUser(Request $request)
+    {
 
         $user = Auth::user();
         $id = $user->id;
@@ -65,26 +69,30 @@ class UserController extends Controller
         $update->display_name = $request->display_name;
         $update->syozoku = $request->syozoku;
         $update->kana = $request->kana;
-        if($request->myimage_path) $update->myimage_path = $request->myimage_path;
+        if ($request->myimage_path) {
+            $update->myimage_path = $request->myimage_path;
+        }
         $update->company_name = $request->company_name;
-        if($request->company_image_path) $update->company_image_path = $request->company_image_path;
+        if ($request->company_image_path) {
+            $update->company_image_path = $request->company_image_path;
+        }
         $update->company_url = $request->company_url;
         $update->tel = $request->tel;
         $update->profile = $request->profile;
         $update->save();
 
-        users_company::where("user_id",$user->id)->where("status",1)->update(['status' => 0]);
-        users_skill::where("user_id",$user->id)->where("status",1)->update(['status' => 0]);
-        users_history::where("user_id",$user->id)->where("status",1)->update(['status' => 0]);
+        users_company::where("user_id", $user->id)->where("status", 1)->update(['status' => 0]);
+        users_skill::where("user_id", $user->id)->where("status", 1)->update(['status' => 0]);
+        users_history::where("user_id", $user->id)->where("status", 1)->update(['status' => 0]);
 
         $companies = $request->company_address;
         $insert = [];
-        $i=0;
-        foreach($companies as $value){
+        $i = 0;
+        foreach ($companies as $value) {
             $insert[$i][ 'user_id'   ] = $user->id;
             $insert[$i][ 'address'   ] = $value['address'];
             $insert[$i][ 'map_url'   ] = $value['map_url'];
-            $insert[$i][ 'order'     ] = $i+1;
+            $insert[$i][ 'order'     ] = $i + 1;
             $insert[$i][ 'created_at'] = now();
             $i++;
         }
@@ -92,11 +100,11 @@ class UserController extends Controller
 
         $skills = $request->skills;
         $insert = [];
-        $i=0;
-        foreach($skills as $value){
+        $i = 0;
+        foreach ($skills as $value) {
             $insert[$i]['user_id' ] = $user->id;
             $insert[$i]['note'    ] = $value['note'];
-            $insert[$i]['order'   ] = $i+1;
+            $insert[$i]['order'   ] = $i + 1;
             $insert[$i]['created_at'] = now();
             $i++;
         }
@@ -105,21 +113,22 @@ class UserController extends Controller
 
         $histories = $request->histories;
         $insert = [];
-        $i=0;
-        foreach($histories as $value){
+        $i = 0;
+        foreach ($histories as $value) {
             $insert[$i]['user_id'] = $user->id;
             $insert[$i]['title'] = $value['title'];
             $insert[$i]['note'] = $value['note'];
-            $insert[$i]['order'] = $i+1;
+            $insert[$i]['order'] = $i + 1;
             $insert[$i]['created_at'] = now();
             $i++;
         }
         users_history::insert($insert);
         return response("success", 200);
     }
-    public function editUserStatus(Request $request){
+    public function editUserStatus(Request $request)
+    {
         DB::beginTransaction();
-        try{
+        try {
             $user = Auth::user();
             $id = $user->id;
             $update = User::find($id);
@@ -129,7 +138,7 @@ class UserController extends Controller
             DB::commit();
             return response("success", 201);
 
-        }catch(Exception $e){
+        } catch (Exception $e) {
             DB::rollback();
             return response($e, 400);
         }
@@ -137,50 +146,81 @@ class UserController extends Controller
     public function logout(Request $request)
     {
         //auth()->guard('web')->logout();
-        try{
+        try {
 
             Auth::guard('sanctum')->user()->tokens()->delete();
             $request->user()->currentAccessToken()->delete();
             //$request->session()->invalidate();
             //$request->session()->regenerateToken();
             return response("logout success", 201);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return response("Unauthenticated Error", 401);
         }
 
 
     }
-    public function setRegist(Request $request){
-        $unique = uniqid().rand();
-        $insert = [];
-        $insert['code'] = $unique;
-        $insert['name'] = $request->name;
-        $insert['mail'] = $request->mail;
-        $insert['tel'] = $request->tel;
-        $insert['post'] = $request->post;
-        $insert['pref'] = $request->pref;
-        $insert['address'] = $request->address;
-        $insert['created_at'] = date("Y-m-d H:i:s");
-        $insert['updated_at'] = date("Y-m-d H:i:s");
-        if(Registed::insert($insert)){
+    public function setRegist(Request $request)
+    {
 
-            $data = [];
-            $data[ 'email' ] = $request->mail;
-            $data[ 'name' ] = $request->name;
-            $data[ 'registUrl' ] = CommonConst::ADMINDOMAIN."/register?c=".$unique;
-            try{
-                Mail::send(new MailRegistNew($data));
-            }catch(Exception $e){
-                return false;
+        DB::beginTransaction();
+        try {
+            $unique = uniqid().rand();
+            $insert = [];
+            $insert['code'] = $unique;
+            $insert['name'] = $request->name;
+            $insert['mail'] = $request->mail;
+            $insert['tel'] = $request->tel;
+            $insert['post'] = $request->post;
+            $insert['pref'] = $request->pref;
+            $insert['address'] = $request->address;
+            $insert['created_at'] = date("Y-m-d H:i:s");
+            $insert['updated_at'] = date("Y-m-d H:i:s");
+            if (Registed::insert($insert)) {
+                $registedId = DB::getPdo()->lastInsertId();
+                // userテーブルに仮データを登録
+                $users = [];
+                $users[ 'code' ] = uniqid();
+                $users[ 'name' ] = $request->name;
+                $users[ 'email' ] = $request->mail;
+                $users[ 'password' ] = "password";
+                User::insert($users);
+                $userId = DB::getPdo()->lastInsertId();
+
+                // 初期テンプレートをユーザに登録
+                $template1 = CommonConst::TEMPLATE1;
+                $template = [];
+                $template[ 'user_id' ] = $userId;
+                $template[ 'registed_id' ] = $registedId;
+
+                foreach ($template1 as $key => $value) {
+                    // snsアイコンのパスを指定
+                    $template[$key] = $value;
+                }
+
+                user_renew_pages::create($template);
+                DB::commit();
+                $data = [];
+                $data[ 'email' ] = $request->mail;
+                $data[ 'name' ] = $request->name;
+                $data[ 'registUrl' ] = CommonConst::ADMINDOMAIN."/register/".$unique;
+                try {
+                    Mail::send(new MailRegistNew($data));
+                } catch (Exception $e) {
+                    return false;
+                }
+                return response("success", 201);
+            } else {
+                DB::rollback();
+                return response("error", 400);
             }
-            return response("success", 201);
-        }else{
-            return response("error", 400);
+        } catch (Exception $e) {
+            DB::rollback();
+            return response($e, 400);
         }
     }
     public function getRegistData(Request $request)
     {
-       // $hour = date("Y-m-d H:i:s");
+        // $hour = date("Y-m-d H:i:s");
         $code = $request->code;
         $sql = "
             SELECT
@@ -193,10 +233,10 @@ class UserController extends Controller
                 status = 1
         ";
         $userdata = DB::select($sql, [$code]);
-        if($userdata){
+        if ($userdata) {
             $this->name = $userdata[0]->name;
             return response($userdata, 201);
-        }else{
+        } else {
             return response([], 400);
         }
     }
@@ -204,11 +244,11 @@ class UserController extends Controller
     {
 
         DB::beginTransaction();
-        try{
-            if($this->getRegistData($request)){
+        try {
+            if ($this->getRegistData($request)) {
                 $code = $request->code;
                 $userdata = Registed::where('code', $code)->first();
-                $userdata->status='2';
+                $userdata->status = '2';
                 $userdata->save();
 
                 $insert = [];
@@ -241,44 +281,50 @@ class UserController extends Controller
                 $histories = $request->histories;
 
                 $insert = [];
-                $i=0;
-                foreach($companies as $value){
-                    if($value['value']){
+                $i = 0;
+                foreach ($companies as $value) {
+                    if ($value['value']) {
                         $insert[$i]['user_id'] = $lastId;
                         $insert[$i]['address'] = $value['value'];
                         $insert[$i]['map_url'] = $value['map_url'];
-                        $insert[$i]['order'] = $i+1;
+                        $insert[$i]['order'] = $i + 1;
                         $insert[$i]['created_at'] = now();
                         $i++;
                     }
                 }
-                if(count($insert) > 0) users_company::insert($insert);
+                if (count($insert) > 0) {
+                    users_company::insert($insert);
+                }
                 $insert = [];
-                $i=0;
-                foreach($skills as $value){
-                    if($value['value']){
+                $i = 0;
+                foreach ($skills as $value) {
+                    if ($value['value']) {
                         $insert[$i]['user_id'] = $lastId;
                         $insert[$i]['note'] = $value['value'];
-                        $insert[$i]['order'] = $i+1;
+                        $insert[$i]['order'] = $i + 1;
                         $insert[$i]['created_at'] = now();
                         $i++;
                     }
                 }
-                if(count($insert) > 0) users_skill::insert($insert);
+                if (count($insert) > 0) {
+                    users_skill::insert($insert);
+                }
 
                 $insert = [];
-                $i=0;
-                foreach($histories as $value){
-                    if($value['value']){
+                $i = 0;
+                foreach ($histories as $value) {
+                    if ($value['value']) {
                         $insert[$i]['user_id'] = $lastId;
                         $insert[$i]['title'] = $value['title'];
                         $insert[$i]['note'] = $value['value'];
-                        $insert[$i]['order'] = $i+1;
+                        $insert[$i]['order'] = $i + 1;
                         $insert[$i]['created_at'] = now();
                         $i++;
                     }
                 }
-                if(count($insert) > 0) users_history::insert($insert);
+                if (count($insert) > 0) {
+                    users_history::insert($insert);
+                }
 
                 DB::commit();
 
@@ -294,86 +340,121 @@ class UserController extends Controller
                 Mail::send(new MailRegist($data));
 
                 return response("success", 201);
-            }else{
+            } else {
                 return response([], 400);
             }
-        }catch(Exception $e){
+        } catch (Exception $e) {
             DB::rollback();
             return response($e, 400);
         }
     }
 
-    public function status(){
+    public function status()
+    {
         $update = User::find(1)->get();
-var_dump($update);
+        var_dump($update);
         return response("success", 201);
     }
     public function top(Request $request)
     {
         $code = $request->code;
         $userdata = User::where('code', $code)
-        ->where("status",1)
+        ->where("status", 1)
         ->first();
-        $user_companies = users_company::where("user_id",$userdata->id)->where("status",1)->get();
-        foreach($user_companies as $key=>$value){
+        $user_companies = users_company::where("user_id", $userdata->id)->where("status", 1)->get();
+        foreach ($user_companies as $key => $value) {
             $user_companies[$key] = $value;
             $user_companies[$key]['map_url_code'] = self::get_googlemap_url($value->map_url);
         }
-        $users_skill = users_skill::where("user_id",$userdata->id)->where("status",1)->get();
-        $users_history = users_history::where("user_id",$userdata->id)->where("status",1)->get();
-        return response(['user'=>$userdata,'company'=>$user_companies,'skill'=>$users_skill,'history'=>$users_history], 201);
+        $users_skill = users_skill::where("user_id", $userdata->id)->where("status", 1)->get();
+        $users_history = users_history::where("user_id", $userdata->id)->where("status", 1)->get();
+        return response(['user' => $userdata,'company' => $user_companies,'skill' => $users_skill,'history' => $users_history], 201);
 
     }
 
-    private function get_googlemap_url($address){
-       // $address = urlencode($address);
+    private function get_googlemap_url($address)
+    {
+        // $address = urlencode($address);
         $address = "東京タワー";
         $zoom = 15;
         return "https://maps.google.co.jp/maps?q={$address}&z={$zoom}";
     }
 
-    public function upload(Request $request){
-        $filename = uniqid().time().".jpg";
-        $request->photo->storeAs('public/app/myImage', $filename);
-        return response($filename, 201);
+    public function upload(Request $request)
+    {
+
+        Log::debug('🟡 リクエスト受信');
+        Log::debug('🔍 all() 内容:', $request->all());
+        Log::debug('🔍 allFiles() 内容:', $request->allFiles());
+
+        if (!$request->hasFile('image')) {
+            Log::error('ファイルが見つかりません。');
+            return response()->json(['error' => 'ファイルが見つかりません'], 400);
+        }
+
+        $file = $request->file('image');
+
+        if (!$file->isValid()) {
+            Log::error('アップロードファイルが無効です。', [
+                'error_code' => $file->getError(),
+            ]);
+            return response()->json(['error' => 'ファイルが無効です'], 400);
+        }
+
+        Log::debug('ファイル情報', [
+            'name' => $file->getClientOriginalName(),
+            'size' => $file->getSize(),
+            'mime' => $file->getClientMimeType(),
+        ]);
+
+        $filename = uniqid() . time() . '.' . $file->getClientOriginalExtension();
+        $user_id = $request->input('user_id');
+
+        $file->storeAs(CommonConst::IMAGEDIR . $user_id, $filename);
+        $path = CommonConst::STRAGEIMAGE . $user_id . '/' . $filename;
+
+        return response($path, 200);
     }
 
-    public function getRead(){
+    public function getRead()
+    {
         $user = Auth::user();
         $id = $user->id;
         $result =
         Readed::select("users.*")
         ->selectRaw('DATE_FORMAT(users.created_at, "%Y/%m/%d") AS date')
-        ->where(["readeds.user_id"=>$id,"readeds.status"=>1])
+        ->where(["readeds.user_id" => $id,"readeds.status" => 1])
         ->join('users', 'readeds.user_read_code', '=', 'users.code')
         ->get();
-        return response($result,200);
+        return response($result, 200);
     }
-    public function forgetForm(Request $request){
+    public function forgetForm(Request $request)
+    {
         $forgetcode = $request->forgetcode;
-        $forget = forget::where("forgetcode",$forgetcode)->where("status",1)->first();
+        $forget = forget::where("forgetcode", $forgetcode)->where("status", 1)->first();
 
         DB::beginTransaction();
-        try{
+        try {
             $user_id = $forget->user_id;
             $user = User::find($user_id);
             $code = $user->code;
-            User::where("id",$user->id)->update([
-                "password"=>password_hash($request->password,PASSWORD_DEFAULT),
-                "updated_at"=>date('Y-m-d H:i:s')
+            User::where("id", $user->id)->update([
+                "password" => password_hash($request->password, PASSWORD_DEFAULT),
+                "updated_at" => date('Y-m-d H:i:s')
             ]);
-            forget::where("forgetcode",$forgetcode)->where("status",1)->update(['status'=>2]);
+            forget::where("forgetcode", $forgetcode)->where("status", 1)->update(['status' => 2]);
 
             DB::commit();
             return response($code, 201);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             DB::rollback();
             return response($e, 400);
         }
     }
-    public function forget(Request $request){
+    public function forget(Request $request)
+    {
         $email = $request->email;
-        $userdata = User::where("email",$email)->where("status",1)->first();
+        $userdata = User::where("email", $email)->where("status", 1)->first();
         $unique = md5(uniqid(rand(), true));
         $insert = [];
         $insert['forgetCode'] = $unique;
@@ -388,32 +469,33 @@ var_dump($update);
         $data[ 'email' ] = $email;
         $data[ 'name' ] = $userdata[ 'name' ];
         $data[ 'registUrl' ] = CommonConst::ADMINDOMAIN."/forgetForm?c=".$unique;
-        try{
+        try {
             Mail::send(new MailRegistForget($data));
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return false;
         }
 
-        return response("success",200);
+        return response("success", 200);
     }
-    public function setRead(Request $request){
+    public function setRead(Request $request)
+    {
         $date = date('Y-m-d H:i:s');
         $user = Auth::user();
         $id = $user->id;
-        Readed::where("user_id",$id)->update([
-            "status"=>0,
-            "created_at"=>$date
+        Readed::where("user_id", $id)->update([
+            "status" => 0,
+            "created_at" => $date
         ]);
 
         $insert = [];
-        for($i = 0 ; $i < count($request[ 'data' ]) ; $i++){
+        for ($i = 0 ; $i < count($request[ 'data' ]) ; $i++) {
             $insert[$i][ 'user_id' ] = $id;
             $insert[$i][ 'user_read_code' ] = $request[ 'data' ][$i][ 'user_read_code' ];
             $insert[$i][ 'readtime' ] = $date;
             $insert[$i][ 'created_at' ] = $date;
         }
         Readed::insert($insert);
-        return response("ok",200);
+        return response("ok", 200);
     }
     /**
      * Show the form for creating a new resource.
@@ -442,48 +524,48 @@ var_dump($update);
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request,User $user,$id)
+    public function edit(Request $request, User $user, $id)
     {
         //
         $users = User::find($id);
-        $users_companies = users_company::where("user_id",$users->id)->where("status",1)->get();
-        $users_companies_count = users_company::where("user_id",$users->id)->where("status",1)->count();
+        $users_companies = users_company::where("user_id", $users->id)->where("status", 1)->get();
+        $users_companies_count = users_company::where("user_id", $users->id)->where("status", 1)->count();
         $users->users_companies = $users_companies;
-        $users->users_companies->count = ($request->sel)?$request->sel:$users_companies_count;
+        $users->users_companies->count = ($request->sel) ? $request->sel : $users_companies_count;
 
-        $users_skill = users_skill::where("user_id",$users->id)->where("status",1)->get();
-        $users_skill_count = users_skill::where("user_id",$users->id)->where("status",1)->count();
+        $users_skill = users_skill::where("user_id", $users->id)->where("status", 1)->get();
+        $users_skill_count = users_skill::where("user_id", $users->id)->where("status", 1)->count();
         $users->users_skill = $users_skill;
-        $users->users_skill->count = ($request->skillsel)?$request->skillsel:$users_skill_count;
+        $users->users_skill->count = ($request->skillsel) ? $request->skillsel : $users_skill_count;
 
-        $users_histories = users_history::where("user_id",$users->id)->where("status",1)->get();
-        $users_histories_count = users_history::where("user_id",$users->id)->where("status",1)->count();
+        $users_histories = users_history::where("user_id", $users->id)->where("status", 1)->get();
+        $users_histories_count = users_history::where("user_id", $users->id)->where("status", 1)->count();
         $users->users_histories = $users_histories;
-        $users->users_histories->count = ($request->historysel)?$request->historysel:$users_histories_count;
+        $users->users_histories->count = ($request->historysel) ? $request->historysel : $users_histories_count;
 
 
         return view('User', compact('users'));
     }
-    public function edited(Request $request,User $user,$id)
+    public function edited(Request $request, User $user, $id)
     {
-        if($request->basic_button){
+        if ($request->basic_button) {
             $update = User::find($id);
-            if($request->password){
-                $update->password = password_hash($request->password,PASSWORD_DEFAULT);
+            if ($request->password) {
+                $update->password = password_hash($request->password, PASSWORD_DEFAULT);
             }
             $update->code = $request->code;
             $update->display_name = $request->display_name;
             $update->syozoku = $request->syozoku;
             $update->kana = $request->kana;
-            if($request->myimage_path){
+            if ($request->myimage_path) {
                 $file_name = uniqid()."_".$request->file('myimage_path')->getClientOriginalName();
-                $request->file('myimage_path')->storeAs( CommonConst::IMAGEDIR,$file_name);
+                $request->file('myimage_path')->storeAs(CommonConst::IMAGEDIR, $file_name);
                 $update->myimage_path = config('app.url').CommonConst::IMAGEPATH.$file_name;
             }
             $update->company_name = $request->company_name;
-            if($request->company_image_path){
+            if ($request->company_image_path) {
                 $file_name = uniqid()."_".$request->file('company_image_path')->getClientOriginalName();
-                $request->file('company_image_path')->storeAs( CommonConst::IMAGEDIR,$file_name);
+                $request->file('company_image_path')->storeAs(CommonConst::IMAGEDIR, $file_name);
                 $update->company_image_path = config('app.url').CommonConst::IMAGEPATH.$file_name;
             }
             $update->company_url = $request->company_url;
@@ -494,57 +576,82 @@ var_dump($update);
 
         }
 
-        if($request->company_button){
+        if ($request->company_button) {
             users_company::where('user_id', $id)->delete();
 
             $insert = [];
-            $i=0;
-            foreach($request->address as $value){
+            $i = 0;
+            foreach ($request->address as $value) {
 
                 $insert[$i]['user_id'] = $id;
                 $insert[$i]['address'] = $value;
                 $insert[$i]['map_url'] = $request->map_url[$i];
-                $insert[$i]['order'] = $i+1;
+                $insert[$i]['order'] = $i + 1;
                 $insert[$i]['created_at'] = now();
                 $insert[$i]['updated_at'] = now();
                 $i++;
 
             }
-            if(count($insert) > 0) users_company::insert($insert);
+            if (count($insert) > 0) {
+                users_company::insert($insert);
+            }
         }
 
-        if($request->user_skills){
+        if ($request->user_skills) {
             users_skill::where('user_id', $id)->delete();
             $insert = [];
-            $i=0;
-            foreach($request->note as $value){
+            $i = 0;
+            foreach ($request->note as $value) {
                 $insert[$i]['user_id'] = $id;
                 $insert[$i]['note'] = $value;
-                $insert[$i]['order'] = $i+1;
+                $insert[$i]['order'] = $i + 1;
                 $insert[$i]['created_at'] = now();
                 $insert[$i]['updated_at'] = now();
                 $i++;
             }
-            if(count($insert) > 0) users_skill::insert($insert);
+            if (count($insert) > 0) {
+                users_skill::insert($insert);
+            }
         }
 
-        if($request->user_history){
+        if ($request->user_history) {
             users_history::where('user_id', $id)->delete();
             $insert = [];
-            $i=0;
-            foreach($request->note as $key=>$value){
+            $i = 0;
+            foreach ($request->note as $key => $value) {
                 $insert[$i]['user_id'] = $id;
                 $insert[$i]['title'] = $request->title[$key];
                 $insert[$i]['note'] = $value;
-                $insert[$i]['order'] = $i+1;
+                $insert[$i]['order'] = $i + 1;
                 $insert[$i]['created_at'] = now();
                 $insert[$i]['updated_at'] = now();
                 $i++;
             }
-            if(count($insert) > 0) users_history::insert($insert);
+            if (count($insert) > 0) {
+                users_history::insert($insert);
+            }
         }
         return redirect()->route('edit', ['id' => $id]);
     }
+
+    /**
+     * getRegistedUserData
+     */
+    public function getRegistedUserData(Request $request)
+    {
+
+        $code = $request->code;
+        try {
+            $userRenewPages = user_renew_pages::whereHas('registed', function ($query) use ($code) {
+                $query->where('code', $code);
+            })->with(['user', 'registed'])->first();
+            return response($userRenewPages, 200);
+        } catch (Exception $e) {
+            return response([], 400);
+        }
+    }
+
+
     /**
      * Update the specified resource in storage.
      */

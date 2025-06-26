@@ -38,6 +38,7 @@ Route::get("top", [UserController::class, 'top']);
 Route::post("setRegist", [UserController::class, 'setRegist']);
 Route::post("setRegistData", [UserController::class, 'setRegistData']);
 Route::post("getRegistData", [UserController::class, 'getRegistData']);
+Route::post("getRegistedUserData", [UserController::class, 'getRegistedUserData']);
 Route::post("forget", [UserController::class, 'forget']);
 Route::post("forgetForm", [UserController::class, 'forgetForm']);
 Route::get("status", [UserController::class, 'status']);
