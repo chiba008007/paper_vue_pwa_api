@@ -25,14 +25,14 @@ class adminController extends Controller
             'password' => ['required'],
         ]);
 
-       if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
             $userdata = User::where('email', $request->email)->first();
             $user = User::find($userdata[ 'id' ]);
-            if($user[ 'code' ] === 'adminis'){
+            if ($user[ 'code' ] === 'adminis') {
                 return redirect()->intended('list');
-            }else{
+            } else {
                 echo "login error";
                 exit();
             }
@@ -46,18 +46,21 @@ class adminController extends Controller
 
 
         $users = User::select([
-            'users.*',
-            'registeds.post as registed_post',
-            'registeds.pref as registed_pref',
-            'registeds.address as registed_address'
-            ])->leftJoin('registeds', function ($join) {
-            $join->on('registeds.mail', '=', 'users.email')
-            ->where('registeds.status', '=', 2);
-        })->get()->sortByDesc("id");
+                'users.*',
+                'registeds.post as registed_post',
+                'registeds.pref as registed_pref',
+                'registeds.code as registed_code',
+                'registeds.address as registed_address',
+                'registeds.created_at as registed_created_at'
+            ])
+            ->leftJoin('user_renew_pages', 'user_renew_pages.user_id', '=', 'users.id')
+            ->leftJoin('registeds', 'registeds.id', '=', 'user_renew_pages.registed_id')
+            ->get()
+            ->sortByDesc('id');
 
-        if(preg_match("/localhost/",$_SERVER['HTTP_HOST'])){
+        if (preg_match("/localhost/", $_SERVER['HTTP_HOST'])) {
             $users->domain = CommonConst::LOCALDOMAIN;
-        }else{
+        } else {
             $users->domain = CommonConst::ADMINDOMAIN;
         }
 
@@ -66,15 +69,15 @@ class adminController extends Controller
     public function listed(Request $request)
     {
 
-        foreach( $request->input('status') as $key=>$value){
-            if($request->id == $key){
+        foreach ($request->input('status') as $key => $value) {
+            if ($request->id == $key) {
                 $user = User::find($key);
                 $user->status = $value;
                 $user->save();
             }
         }
-        foreach( $request->input('display_flag') as $key=>$value){
-            if($request->id == $key){
+        foreach ($request->input('display_flag') as $key => $value) {
+            if ($request->id == $key) {
                 $user = User::find($key);
                 $user->display_flag = $value;
                 $user->save();

@@ -25,14 +25,23 @@ return new class () extends Migration {
 
             // images
             $table->string('top')->nullable();
+            $table->boolean('updateTopImage_checked')->default(false)->nullable();
             $table->string('human')->nullable();
+            $table->boolean('humanImage_checked')->default(false)->nullable();
             $table->string('ya_image')->nullable();
             $table->string('title1_image')->nullable();
+            $table->boolean('title1_image_checked')->default(false)->nullable();
             $table->string('image1')->nullable();
             $table->string('image2')->nullable();
             $table->string('image3')->nullable();
             $table->string('image4')->nullable();
             $table->string('image5')->nullable();
+            $table->boolean('image1_checked')->default(false)->nullable();
+            $table->boolean('image2_checked')->default(false)->nullable();
+            $table->boolean('image3_checked')->default(false)->nullable();
+            $table->boolean('image4_checked')->default(false)->nullable();
+            $table->boolean('image5_checked')->default(false)->nullable();
+
 
             // text fields
             $table->string('text1')->nullable();

@@ -4,6 +4,7 @@ use App\Http\Controllers\MailController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserRenewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,6 +40,8 @@ Route::post("setRegist", [UserController::class, 'setRegist']);
 Route::post("setRegistData", [UserController::class, 'setRegistData']);
 Route::post("getRegistData", [UserController::class, 'getRegistData']);
 Route::post("getRegistedUserData", [UserController::class, 'getRegistedUserData']);
+Route::post("getRenewUserData", [UserRenewController::class, 'getRenewUserData']);
+Route::post("editUserRenewPage", [UserRenewController::class, 'editUserRenewPage']);
 Route::post("forget", [UserController::class, 'forget']);
 Route::post("forgetForm", [UserController::class, 'forgetForm']);
 Route::get("status", [UserController::class, 'status']);

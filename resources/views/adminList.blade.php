@@ -32,7 +32,7 @@ chiba00807@gmail.com / Takahiro1234
     @foreach ($users as $user)
     <tr>
         <td>{{ $user->id }}</td>
-        <td>{{ $users->domain }}/?code={{ $user->code }}</td>
+        <td>{{ $users->domain }}/{{ $user->registed_code }}</td>
         <td>{{ $user->name }}</td>
         <td>{{ $user->email }}</td>
         <td>{{ $user->registed_post }}<br />{{ $user->registed_pref }}{{ $user->registed_address }}</td>
@@ -51,7 +51,7 @@ chiba00807@gmail.com / Takahiro1234
             </select>
 
         </td>
-        <td>{{ $user->created_at }}</td>
+        <td>{{ $user->registed_created_at }}</td>
         <td>
             <a href="{{ route('edit',['id' => $user->id]) }}">更新</a>
             <a href="">削除</a>

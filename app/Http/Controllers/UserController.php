@@ -21,6 +21,7 @@ use App\Consts\CommonConst;
 use App\Models\forget;
 use App\Models\user_renew_pages;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -31,23 +32,38 @@ class UserController extends Controller
     public function index(Request $request)
     {
 
-        //
-        $userdata = User::where('email', $request->email)->first();
-        if (!$userdata) {
-            return response("error", 401);
-        }
-        $user = User::find($userdata[ 'id' ]);
-        $token = "";
-        if (password_verify($request->password, $user['password'])) {
-            $token = $user->createToken('my-app-token')->plainTextToken;
-            $response = [
-                'user' => $user,
-                'token' => $token
-            ];
+        $email = $request->email;
+        $password = $request->password;
 
-            return response($response, 201);
+        // ① user_renew_pages 経由で user.email を元に取得
+        $userdata = user_renew_pages::with(['user', 'registed'])
+            ->whereHas('user', function ($query) use ($email) {
+                $query->where('email', $email);
+            })
+            ->first();
+
+        if (!$userdata || !$userdata->user) {
+            return response("error: user not found", 401);
         }
-        return response("error", 401);
+
+        $user = $userdata->user;
+
+        // ② パスワードチェック
+        if (!Hash::check($password, $user->password)) {
+            return response("error: password mismatch", 401);
+        }
+
+        // ③ トークン発行
+        $token = $user->createToken('my-app-token')->plainTextToken;
+
+        $response = [
+            'user' => $user,
+            'token' => $token,
+            'renew_page' => $userdata,
+            'registed_code' => $userdata->registed?->code,
+        ];
+
+        return response($response, 201);
     }
     public function getEditUser(Request $request)
     {
@@ -156,8 +172,6 @@ class UserController extends Controller
         } catch (Exception $e) {
             return response("Unauthenticated Error", 401);
         }
-
-
     }
     public function setRegist(Request $request)
     {
@@ -182,6 +196,10 @@ class UserController extends Controller
                 $users[ 'code' ] = uniqid();
                 $users[ 'name' ] = $request->name;
                 $users[ 'email' ] = $request->mail;
+                $users[ 'tel' ] = $request->tel;
+                $users[ 'post' ] = $request->post;
+                $users[ 'pref' ] = $request->pref;
+                $users[ 'address' ] = $request->address;
                 $users[ 'password' ] = "password";
                 User::insert($users);
                 $userId = DB::getPdo()->lastInsertId();
@@ -240,6 +258,9 @@ class UserController extends Controller
             return response([], 400);
         }
     }
+
+
+
     public function setRegistData(Request $request)
     {
 
@@ -644,7 +665,11 @@ class UserController extends Controller
         try {
             $userRenewPages = user_renew_pages::whereHas('registed', function ($query) use ($code) {
                 $query->where('code', $code);
-            })->with(['user', 'registed'])->first();
+            })
+            ->whereHas('user', function ($query) {
+                $query->where('status', 1);
+            })
+            ->with(['user', 'registed'])->first();
             return response($userRenewPages, 200);
         } catch (Exception $e) {
             return response([], 400);
